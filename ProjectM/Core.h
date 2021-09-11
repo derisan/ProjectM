@@ -9,3 +9,9 @@
 #else
 #define MK_ASSERT(x, ...) 
 #endif // MK_DEBUG
+
+struct Vertex
+{
+	Vector3 Position;
+	Vector4 Color;
+};

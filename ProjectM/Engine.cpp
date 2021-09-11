@@ -51,6 +51,9 @@ void Engine::OnRender()
 	BeginRender();
 
 	// TODO:: render scene.
+	m_CmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_CmdList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+	m_CmdList->DrawInstanced(3, 1, 0, 0);
 
 	EndRender();
 }
@@ -141,8 +144,15 @@ void Engine::LoadPipeline()
 
 void Engine::LoadAssets()
 {
+	CreateRootSignature();
+
 	ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-		m_CmdAllocators[m_FrameIndex].Get(), /*m_PipelineState.Get()*/nullptr, IID_PPV_ARGS(&m_CmdList)));
+		m_CmdAllocators[m_FrameIndex].Get(), m_PSO->GetPSO().Get(), IID_PPV_ARGS(&m_CmdList)));
+
+
+	// Load things here.
+	CreateTestTriangle();
+
 
 	ThrowIfFailed(m_CmdList->Close());
 
@@ -156,6 +166,23 @@ void Engine::LoadAssets()
 	}
 
 	WaitForGpu();
+}
+
+void Engine::CreateRootSignature()
+{
+	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+	ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+	ThrowIfFailed(m_Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature)));
+
+	std::vector<D3D12_INPUT_ELEMENT_DESC> inputDesc;
+	inputDesc.push_back({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+	inputDesc.push_back({ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+
+	m_PSO = std::make_unique<PipelineState>(L"Assets/Shaders/shader.hlsli", inputDesc, m_RootSignature);
 }
 
 void Engine::MoveToNextFrame()
@@ -187,8 +214,9 @@ void Engine::WaitForGpu()
 void Engine::BeginRender()
 {
 	ThrowIfFailed(m_CmdAllocators[m_FrameIndex]->Reset());
-	ThrowIfFailed(m_CmdList->Reset(m_CmdAllocators[m_FrameIndex].Get(), /*m_PipelineState.Get()*/nullptr));
+	ThrowIfFailed(m_CmdList->Reset(m_CmdAllocators[m_FrameIndex].Get(), m_PSO->GetPSO().Get()));
 
+	m_CmdList->SetGraphicsRootSignature(m_RootSignature.Get());
 	m_CmdList->RSSetViewports(1, &m_Viewport);
 	m_CmdList->RSSetScissorRects(1, &m_ScissorRect);
 	m_CmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
@@ -213,4 +241,39 @@ void Engine::EndRender()
 	ThrowIfFailed(m_SwapChain->Present(1, 0));
 
 	MoveToNextFrame();
+}
+
+void Engine::CreateTestTriangle()
+{
+	float aspectRatio = m_AspectRatio;
+
+	{
+		Vertex triangleVertices[] =
+		{
+			{ { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+			{ { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+			{ { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+		};
+
+		const UINT vertexBufferSize = sizeof(triangleVertices);
+
+
+		ThrowIfFailed(m_Device->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			D3D12_HEAP_FLAG_NONE,
+			&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&m_VertexBuffer)));
+
+		UINT8* pVertexDataBegin;
+		CD3DX12_RANGE readRange(0, 0);
+		ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
+		m_VertexBuffer->Unmap(0, nullptr);
+
+		m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
+		m_VertexBufferView.StrideInBytes = sizeof(Vertex);
+		m_VertexBufferView.SizeInBytes = vertexBufferSize;
+	}
 }

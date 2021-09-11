@@ -2,6 +2,7 @@
 
 #include "Core.h"
 
+#include "PipelineState.h"
 
 class Engine
 {
@@ -30,11 +31,15 @@ public:
 private:
 	void LoadPipeline();
 	void LoadAssets();
+	void CreateRootSignature();
+
 	void MoveToNextFrame();
 	void WaitForGpu();
 
 	void BeginRender();
 	void EndRender();
+
+	void CreateTestTriangle();
 
 private:
 	static Engine* s_Instance;
@@ -59,11 +64,18 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
 	ComPtr<ID3D12GraphicsCommandList> m_CmdList;
 	ComPtr<ID3D12Fence> m_Fence;
+	ComPtr<ID3D12RootSignature> m_RootSignature;
+
+	std::unique_ptr<PipelineState> m_PSO;
 
 	UINT m_RtvDescriptorSize;
 	UINT m_FrameIndex;
 	HANDLE m_FenceEvent;
 	UINT64 m_FenceValues[kFrameCount];
+
+	// For test
+	ComPtr<ID3D12Resource> m_VertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
 };
 
 #define DEVICE Engine::GetEngine()->GetDevice()

@@ -11,6 +11,12 @@
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{03a94beb-f3b3-4e28-a395-f7b2ef87fe9d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{9c7b9d64-1c8f-4c53-bbc2-be34df879f3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Renderer">
+      <UniqueIdentifier>{02191e05-4f7c-4f3d-9972-d8aa5dec05c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EntryPoint.cpp">
@@ -30,6 +36,9 @@
     </ClCompile>
     <ClCompile Include="Log.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineState.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -57,10 +66,16 @@
     <ClInclude Include="Log.h">
       <Filter>Source Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="PipelineState.h">
+      <Filter>Source Files\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">
       <Filter>Source Files\Utility</Filter>
+    </None>
+    <None Include="Assets\Shaders\shader.hlsli">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
