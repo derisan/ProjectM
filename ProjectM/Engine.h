@@ -74,8 +74,7 @@ private:
 	UINT64 m_FenceValues[kFrameCount];
 
 	// For test
-	ComPtr<ID3D12Resource> m_VertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+	class Mesh* m_Rect;
 };
 
 #define DEVICE Engine::GetEngine()->GetDevice()

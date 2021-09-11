@@ -2,6 +2,7 @@
 #include "Engine.h"
 
 #include "Application.h"
+#include "Mesh.h"
 
 
 Engine* Engine::s_Instance = nullptr;
@@ -52,8 +53,9 @@ void Engine::OnRender()
 
 	// TODO:: render scene.
 	m_CmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_CmdList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-	m_CmdList->DrawInstanced(3, 1, 0, 0);
+	m_CmdList->IASetVertexBuffers(0, 1, m_Rect->GetVertexBufferView());
+	m_CmdList->IASetIndexBuffer(m_Rect->GetIndexBufferView());
+	m_CmdList->DrawIndexedInstanced(m_Rect->GetIndexCount(), 1, 0, 0, 0);
 
 	EndRender();
 }
@@ -149,12 +151,11 @@ void Engine::LoadAssets()
 	ThrowIfFailed(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
 		m_CmdAllocators[m_FrameIndex].Get(), m_PSO->GetPSO().Get(), IID_PPV_ARGS(&m_CmdList)));
 
-
 	// Load things here.
 	CreateTestTriangle();
 
-
 	ThrowIfFailed(m_CmdList->Close());
+
 
 	ThrowIfFailed(m_Device->CreateFence(m_FenceValues[m_FrameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
 	m_FenceValues[m_FrameIndex]++;
@@ -248,32 +249,28 @@ void Engine::CreateTestTriangle()
 	float aspectRatio = m_AspectRatio;
 
 	{
-		Vertex triangleVertices[] =
+		std::vector<Vertex> vertices(4);
+		vertices[0].Position = Vector3(-0.5f, 0.5f * aspectRatio, 0.5f);
+		vertices[0].Color = Vector4(1.f, 0.f, 0.f, 1.f);
+		vertices[1].Position = Vector3(0.5f, 0.5f * aspectRatio, 0.5f);
+		vertices[1].Color = Vector4(0.f, 1.f, 0.f, 1.f);
+		vertices[2].Position = Vector3(0.5f, -0.5f * aspectRatio, 0.5f);
+		vertices[2].Color = Vector4(0.f, 0.f, 1.f, 1.f);
+		vertices[3].Position = Vector3(-0.5f, -0.5f * aspectRatio, 0.5f);
+		vertices[3].Color = Vector4(0.f, 1.f, 0.f, 1.f);
+
+		std::vector<UINT> indices;
 		{
-			{ { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-			{ { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-			{ { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-		};
+			indices.push_back(0);
+			indices.push_back(1);
+			indices.push_back(2);
+		}
+		{
+			indices.push_back(0);
+			indices.push_back(2);
+			indices.push_back(3);
+		}
 
-		const UINT vertexBufferSize = sizeof(triangleVertices);
-
-
-		ThrowIfFailed(m_Device->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_VertexBuffer)));
-
-		UINT8* pVertexDataBegin;
-		CD3DX12_RANGE readRange(0, 0);
-		ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-		m_VertexBuffer->Unmap(0, nullptr);
-
-		m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-		m_VertexBufferView.StrideInBytes = sizeof(Vertex);
-		m_VertexBufferView.SizeInBytes = vertexBufferSize;
+		m_Rect = new Mesh(vertices, indices);
 	}
 }
