@@ -74,11 +74,13 @@ void Engine::OnKeyDown(UINT8 keycode)
 	{
 		::PostQuitMessage(0);
 	}
+
+	m_ActiveScene->OnKeyDown(keycode);
 }
 
 void Engine::OnKeyUp(UINT8 keycode)
 {
-
+	m_ActiveScene->OnKeyUp(keycode);
 }
 
 void Engine::Submit(Mesh* mesh)
@@ -196,8 +198,11 @@ void Engine::LoadAssets()
 
 void Engine::CreateRootSignature()
 {
-	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	CD3DX12_ROOT_PARAMETER params[1];
+	params[0].InitAsConstantBufferView(0);
+
+	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = CD3DX12_ROOT_SIGNATURE_DESC(_countof(params),
+		params, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;

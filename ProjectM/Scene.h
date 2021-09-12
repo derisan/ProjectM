@@ -16,6 +16,10 @@ public:
 	void OnRender();
 	void LoadAssets();
 
+	void OnKeyDown(UINT8 keycode);
+	void OnKeyUp(UINT8 keycode);
+
+private:
 	Mesh* CreateTestMesh();
 
 private:
