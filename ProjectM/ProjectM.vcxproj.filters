@@ -31,9 +31,6 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleMath.cpp">
-      <Filter>Source Files\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="Application.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -63,9 +60,6 @@
     <ClInclude Include="d3dx12.h">
       <Filter>Source Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleMath.h">
-      <Filter>Source Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="Application.h">
       <Filter>Source Files\Core</Filter>
     </ClInclude>
@@ -92,9 +86,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SimpleMath.inl">
-      <Filter>Source Files\Utility</Filter>
-    </None>
     <None Include="Assets\Shaders\shader.hlsli">
       <Filter>Shaders</Filter>
     </None>

@@ -13,8 +13,7 @@
 #include <DirectXPackedVector.h>
 #include <DirectXColors.h>
 #include "d3dx12.h"
-#include "SimpleMath.h"
-#include "SimpleMath.inl"
+#include <DirectXTK12/SimpleMath.h>
 
 #include <string>
 #include <wrl.h>
