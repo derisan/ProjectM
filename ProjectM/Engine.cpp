@@ -154,8 +154,10 @@ void Engine::LoadAssets()
 	// Load things here.
 	CreateTestTriangle();
 
+	// Flush command queue for resource copying.
 	ThrowIfFailed(m_CmdList->Close());
-
+	ID3D12CommandList* ppCommandLists[] = { m_CmdList.Get() };
+	m_CmdQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	ThrowIfFailed(m_Device->CreateFence(m_FenceValues[m_FrameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
 	m_FenceValues[m_FrameIndex]++;
@@ -167,6 +169,13 @@ void Engine::LoadAssets()
 	}
 
 	WaitForGpu();
+
+	for (auto buffer : m_UsedUploadBuffers)
+	{
+		//SAFE_RELEASE(buffer);
+		if (buffer) 
+			buffer->Release();
+	}
 }
 
 void Engine::CreateRootSignature()

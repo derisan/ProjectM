@@ -60,7 +60,7 @@ inline Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
 	return byteCode;
 }
 
-ComPtr<ID3D12Resource> CreateDefaultBuffer(
+static ComPtr<ID3D12Resource> CreateDefaultBuffer(
 	ID3D12Device* device,
 	ID3D12GraphicsCommandList* cmdList,
 	const void* initData,

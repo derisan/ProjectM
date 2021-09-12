@@ -25,6 +25,7 @@ public:
 
 	ComPtr<ID3D12Device> GetDevice() { return m_Device; }
 	ComPtr<ID3D12GraphicsCommandList> GetCmdList() { return m_CmdList; }
+	void AddUsedUploadBuffer(ComPtr<ID3D12Resource> buffer) { m_UsedUploadBuffers.push_back(buffer); }
 
 	static Engine* GetEngine() { return s_Instance; }
 
@@ -73,9 +74,12 @@ private:
 	HANDLE m_FenceEvent;
 	UINT64 m_FenceValues[kFrameCount];
 
+	std::vector<ComPtr<ID3D12Resource>> m_UsedUploadBuffers;
+
 	// For test
 	class Mesh* m_Rect;
 };
 
 #define DEVICE Engine::GetEngine()->GetDevice()
 #define CMD_LIST Engine::GetEngine()->GetCmdList()
+#define RELEASE_UPLOAD_BUFFER(x) Engine::GetEngine()->AddUsedUploadBuffer(x)
