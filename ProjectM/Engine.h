@@ -4,6 +4,9 @@
 
 #include "PipelineState.h"
 
+class Mesh;
+class Scene;
+
 class Engine
 {
 public:
@@ -18,6 +21,8 @@ public:
 
 	void OnKeyDown(UINT8 keycode);
 	void OnKeyUp(UINT8 keycode);
+
+	void Submit(Mesh* mesh);
 
 	UINT GetWidth() const { return m_Width; }
 	UINT GetHeight() const { return m_Height; }
@@ -42,8 +47,6 @@ private:
 
 	void BeginRender();
 	void EndRender();
-
-	void CreateTestTriangle();
 
 private:
 	static Engine* s_Instance;
@@ -79,10 +82,11 @@ private:
 
 	std::vector<ComPtr<ID3D12Resource>> m_UsedUploadBuffers;
 
-	// For test
-	class Mesh* m_Rect;
+	Scene* m_ActiveScene;
 };
 
+#define ENGINE Engine::GetEngine()
 #define DEVICE Engine::GetEngine()->GetDevice()
 #define CMD_LIST Engine::GetEngine()->GetCmdList()
 #define RELEASE_UPLOAD_BUFFER(x) Engine::GetEngine()->AddUsedUploadBuffer(x)
+#define SUBMIT(x) Engine::GetEngine()->Submit(x)

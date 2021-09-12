@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "Mesh.h"
+#include "Scene.h"
 
 
 Engine* Engine::s_Instance = nullptr;
@@ -11,6 +12,7 @@ Engine::Engine(UINT width, UINT height, std::wstring title)
 	: m_Width(width), m_Height(height), m_Title(title)
 	, m_RtvDescriptorSize(0), m_FrameIndex(0), m_FenceEvent(nullptr)
 	, m_FenceValues{}
+	, m_ActiveScene(nullptr)
 {
 	MK_ASSERT(!s_Instance, "Engine's initialized more than once.");
 	s_Instance = this;
@@ -19,6 +21,9 @@ Engine::Engine(UINT width, UINT height, std::wstring title)
 
 	m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
 	m_ScissorRect = CD3DX12_RECT(0, 0, static_cast<LONG>(width), static_cast<LONG>(height));
+
+	// Create Scene
+	m_ActiveScene = new Scene();
 }
 
 Engine::~Engine()
@@ -45,22 +50,20 @@ void Engine::OnDestroy()
 {
 	WaitForGpu();
 	CloseHandle(m_FenceEvent);
+
+	if (m_ActiveScene) delete m_ActiveScene;
 }
 
 void Engine::OnUpdate()
 {
-
+	m_ActiveScene->OnUpdate();
 }
 
 void Engine::OnRender()
 {
 	BeginRender();
 
-	// TODO:: render scene.
-	m_CmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_CmdList->IASetVertexBuffers(0, 1, m_Rect->GetVertexBufferView());
-	m_CmdList->IASetIndexBuffer(m_Rect->GetIndexBufferView());
-	m_CmdList->DrawIndexedInstanced(m_Rect->GetIndexCount(), 1, 0, 0, 0);
+	m_ActiveScene->OnRender();
 
 	EndRender();
 }
@@ -76,6 +79,14 @@ void Engine::OnKeyDown(UINT8 keycode)
 void Engine::OnKeyUp(UINT8 keycode)
 {
 
+}
+
+void Engine::Submit(Mesh* mesh)
+{
+	m_CmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_CmdList->IASetVertexBuffers(0, 1, mesh->GetVertexBufferView());
+	m_CmdList->IASetIndexBuffer(mesh->GetIndexBufferView());
+	m_CmdList->DrawIndexedInstanced(mesh->GetIndexCount(), 1, 0, 0, 0);
 }
 
 void Engine::LoadPipeline()
@@ -157,7 +168,7 @@ void Engine::LoadAssets()
 		m_CmdAllocators[m_FrameIndex].Get(), m_PSO->GetPSO().Get(), IID_PPV_ARGS(&m_CmdList)));
 
 	// Load things here.
-	CreateTestTriangle();
+	m_ActiveScene->LoadAssets();
 
 	// Flush command queue for resource copying.
 	ThrowIfFailed(m_CmdList->Close());
@@ -234,8 +245,9 @@ void Engine::BeginRender()
 	m_CmdList->SetGraphicsRootSignature(m_RootSignature.Get());
 	m_CmdList->RSSetViewports(1, &m_Viewport);
 	m_CmdList->RSSetScissorRects(1, &m_ScissorRect);
-	m_CmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
-		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	
+	const auto toRenderTargetBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_CmdList->ResourceBarrier(1, &toRenderTargetBarrier);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RtvHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RtvDescriptorSize);
 	m_CmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
@@ -245,8 +257,8 @@ void Engine::BeginRender()
 
 void Engine::EndRender()
 {
-	m_CmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+	const auto toRenderTargetBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_CmdList->ResourceBarrier(1, &toRenderTargetBarrier);
 
 	ThrowIfFailed(m_CmdList->Close());
 
@@ -256,35 +268,4 @@ void Engine::EndRender()
 	ThrowIfFailed(m_SwapChain->Present(1, 0));
 
 	MoveToNextFrame();
-}
-
-void Engine::CreateTestTriangle()
-{
-	float aspectRatio = m_AspectRatio;
-
-	{
-		std::vector<Vertex> vertices(4);
-		vertices[0].Position = Vector3(-0.5f, 0.5f * aspectRatio, 0.5f);
-		vertices[0].Color = Vector4(1.f, 0.f, 0.f, 1.f);
-		vertices[1].Position = Vector3(0.5f, 0.5f * aspectRatio, 0.5f);
-		vertices[1].Color = Vector4(0.f, 1.f, 0.f, 1.f);
-		vertices[2].Position = Vector3(0.5f, -0.5f * aspectRatio, 0.5f);
-		vertices[2].Color = Vector4(0.f, 0.f, 1.f, 1.f);
-		vertices[3].Position = Vector3(-0.5f, -0.5f * aspectRatio, 0.5f);
-		vertices[3].Color = Vector4(0.f, 1.f, 0.f, 1.f);
-
-		std::vector<UINT> indices;
-		{
-			indices.push_back(0);
-			indices.push_back(1);
-			indices.push_back(2);
-		}
-		{
-			indices.push_back(0);
-			indices.push_back(2);
-			indices.push_back(3);
-		}
-
-		m_Rect = new Mesh(vertices, indices);
-	}
 }
