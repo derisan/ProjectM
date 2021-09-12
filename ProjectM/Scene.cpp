@@ -56,7 +56,7 @@ void Scene::LoadAssets()
 	m_Registry.emplace<MeshRendererComponent>(entt, CreateTestMesh());
 	m_Registry.emplace<TransformComponent>(entt, Vector3(0.0f, 0.0f, 0.0f));
 
-	m_Tex = new Texture(L"Assets//Textures//vase_normal.dds");
+	m_Tex = new Texture(L"Assets//Textures//cat.png");
 }
 
 void Scene::OnKeyDown(UINT8 keycode)

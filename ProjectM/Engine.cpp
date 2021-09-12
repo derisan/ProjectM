@@ -42,6 +42,7 @@ void Engine::OnInit()
 
 	MK_INFO("Engine Initializing...");
 
+	CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 	LoadPipeline();
 	LoadAssets();
 }
