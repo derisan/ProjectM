@@ -7,8 +7,9 @@
 class Engine
 {
 public:
-	Engine(UINT width, UINT height, std::wstring title);
 	~Engine();
+
+	static Engine* CreateEngine(UINT width, UINT height, std::wstring title);
 
 	void OnInit();
 	void OnDestroy();
@@ -30,6 +31,8 @@ public:
 	static Engine* GetEngine() { return s_Instance; }
 
 private:
+	Engine(UINT width, UINT height, std::wstring title);
+
 	void LoadPipeline();
 	void LoadAssets();
 	void CreateRootSignature();

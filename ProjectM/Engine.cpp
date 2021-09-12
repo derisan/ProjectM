@@ -26,6 +26,11 @@ Engine::~Engine()
 
 }
 
+Engine* Engine::CreateEngine(UINT width, UINT height, std::wstring title)
+{
+	return new Engine(width, height, title);
+}
+
 void Engine::OnInit()
 {
 	Log::Init();
