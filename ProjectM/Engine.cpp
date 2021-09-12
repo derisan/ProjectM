@@ -51,7 +51,11 @@ void Engine::OnDestroy()
 	WaitForGpu();
 	CloseHandle(m_FenceEvent);
 
-	if (m_ActiveScene) delete m_ActiveScene;
+	if (m_ActiveScene)
+	{
+		m_ActiveScene->OnDestroy();
+		delete m_ActiveScene;
+	}
 }
 
 void Engine::OnUpdate()
@@ -170,7 +174,7 @@ void Engine::LoadAssets()
 		m_CmdAllocators[m_FrameIndex].Get(), m_PSO->GetPSO().Get(), IID_PPV_ARGS(&m_CmdList)));
 
 	// Load things here.
-	m_ActiveScene->LoadAssets();
+	m_ActiveScene->OnInit();
 
 	// Flush command queue for resource copying.
 	ThrowIfFailed(m_CmdList->Close());
@@ -198,11 +202,16 @@ void Engine::LoadAssets()
 
 void Engine::CreateRootSignature()
 {
-	CD3DX12_ROOT_PARAMETER params[1];
-	params[0].InitAsConstantBufferView(0);
+	CD3DX12_DESCRIPTOR_RANGE descRange[1];
+	descRange[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
+	CD3DX12_ROOT_PARAMETER params[2];
+	params[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+	params[1].InitAsDescriptorTable(_countof(descRange), descRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	const auto samplerDesc = CD3DX12_STATIC_SAMPLER_DESC(0);
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = CD3DX12_ROOT_SIGNATURE_DESC(_countof(params),
-		params, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		params, 1, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
@@ -211,7 +220,7 @@ void Engine::CreateRootSignature()
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> inputDesc;
 	inputDesc.push_back({ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
-	inputDesc.push_back({ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
+	inputDesc.push_back({ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 });
 
 	m_PSO = std::make_unique<PipelineState>(L"Assets/Shaders/shader.hlsli", inputDesc, m_RootSignature);
 }

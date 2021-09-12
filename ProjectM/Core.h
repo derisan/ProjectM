@@ -13,5 +13,5 @@
 struct Vertex
 {
 	Vector3 Position;
-	Vector4 Color;
+	Vector2 UV;
 };

@@ -99,6 +99,7 @@
     </ClCompile>
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\shader.hlsli" />
