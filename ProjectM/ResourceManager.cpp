@@ -40,9 +40,10 @@ Texture* ResourceManager::LoadTexture(const std::wstring& path)
 	else
 	{
 		auto tex = Texture::CreateTexture(path);
-		if (!tex)
+		if (tex)
 		{
 			m_Textures[path] = tex;
+			MK_INFO("Num textures: {0}", m_Textures.size());
 		}
 		return tex;
 	}

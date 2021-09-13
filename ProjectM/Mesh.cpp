@@ -9,11 +9,16 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<UINT>& indices
 	CreateIndexBuffer(indices);
 }
 
+Mesh* Mesh::CreateMesh(const std::wstring& path)
+{
+	return nullptr;
+}
+
 void Mesh::CreateVertexBuffer(const std::vector<Vertex>& vertices)
 {
 	m_VertexCount = static_cast<UINT>(vertices.size());
 	UINT bufferSize = m_VertexCount * sizeof(Vertex);
-
+	
 
 	const CD3DX12_HEAP_PROPERTIES uploadBufferHeapProps(D3D12_HEAP_TYPE_UPLOAD);
 	const CD3DX12_RESOURCE_DESC uploadbufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);

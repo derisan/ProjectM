@@ -4,9 +4,11 @@
 #include "Application.h"
 #include "Mesh.h"
 #include "Scene.h"
+#include "TextureDescriptorHeap.h"
 
 
 Engine* Engine::s_Instance = nullptr;
+TextureDescriptorHeap* Engine::s_TextureDescriptorHeap = nullptr;
 
 Engine::Engine(UINT width, UINT height, std::wstring title)
 	: m_Width(width), m_Height(height), m_Title(title)
@@ -165,6 +167,8 @@ void Engine::LoadPipeline()
 			ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CmdAllocators[n])));
 		}
 	}
+
+	s_TextureDescriptorHeap = new TextureDescriptorHeap();
 }
 
 void Engine::LoadAssets()

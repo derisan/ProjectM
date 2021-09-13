@@ -5,6 +5,7 @@
 #include "Components.h"
 #include "Texture.h"
 #include "ResourceManager.h"
+#include "TextureDescriptorHeap.h"
 
 Scene::Scene()
 {
@@ -33,14 +34,14 @@ void Scene::OnUpdate()
 
 void Scene::OnRender()
 {
+	ID3D12DescriptorHeap* ppHeaps[] = { TEXHEAP->GetHeap().Get() };
+	CMD_LIST->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 	auto view = m_Registry.view<MeshRendererComponent, TransformComponent>();
 	for (auto entity : view)
 	{
 		auto [meshRenderer, transform] = view.get<MeshRendererComponent, TransformComponent>(entity);
 		CMD_LIST->SetGraphicsRootConstantBufferView(0, transform);
-		ID3D12DescriptorHeap* ppHeaps[] = { meshRenderer.Tex->GetSrvHeap().Get() };
-		CMD_LIST->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-		CMD_LIST->SetGraphicsRootDescriptorTable(1, meshRenderer.Tex->GetSrvHeap()->GetGPUDescriptorHandleForHeapStart());
+		CMD_LIST->SetGraphicsRootDescriptorTable(1, meshRenderer.Tex->GetGpuHandle());
 		SUBMIT(meshRenderer.Messi);
 	}
 }

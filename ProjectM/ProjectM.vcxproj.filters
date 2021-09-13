@@ -59,7 +59,7 @@
       <Filter>Source Files\Manager</Filter>
     </ClCompile>
     <ClCompile Include="TextureDescriptorHeap.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -13,6 +13,8 @@ public:
 
 	UINT GetIndexCount() const { return m_IndexCount; }
 
+	static Mesh* CreateMesh(const std::wstring& path);
+
 private:
 	void CreateVertexBuffer(const std::vector<Vertex>& vertices);
 	void CreateIndexBuffer(const std::vector<UINT>& indices);

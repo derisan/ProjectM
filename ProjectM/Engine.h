@@ -6,6 +6,7 @@
 
 class Mesh;
 class Scene;
+class TextureDescriptorHeap;
 
 class Engine
 {
@@ -34,6 +35,7 @@ public:
 	void AddUsedUploadBuffer(ComPtr<ID3D12Resource> buffer) { m_UsedUploadBuffers.push_back(buffer); }
 
 	static Engine* GetEngine() { return s_Instance; }
+	static TextureDescriptorHeap* GetTexHeap() { return s_TextureDescriptorHeap; }
 
 private:
 	Engine(UINT width, UINT height, std::wstring title);
@@ -50,6 +52,7 @@ private:
 
 private:
 	static Engine* s_Instance;
+	static TextureDescriptorHeap* s_TextureDescriptorHeap;
 
 	static const UINT kFrameCount = 2;
 
@@ -90,3 +93,4 @@ private:
 #define CMD_LIST Engine::GetEngine()->GetCmdList()
 #define RELEASE_UPLOAD_BUFFER(x) Engine::GetEngine()->AddUsedUploadBuffer(x)
 #define SUBMIT(x) Engine::GetEngine()->Submit(x)
+#define TEXHEAP Engine::GetTexHeap()

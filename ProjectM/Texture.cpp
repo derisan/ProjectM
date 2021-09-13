@@ -2,6 +2,9 @@
 #include "Texture.h"
 
 #include "Engine.h"
+#include "TextureDescriptorHeap.h"
+
+UINT Texture::s_NumTextures = 0;
 
 Texture* Texture::CreateTexture(const std::wstring& path)
 {
@@ -10,6 +13,11 @@ Texture* Texture::CreateTexture(const std::wstring& path)
 
 	if (!res) return nullptr;
 	else return tex;
+}
+
+Texture::Texture()
+{
+	m_MyIndex = s_NumTextures++;
 }
 
 bool Texture::LoadTexture(const std::wstring& path)
@@ -72,22 +80,17 @@ bool Texture::LoadTexture(const std::wstring& path)
 
 	RELEASE_UPLOAD_BUFFER(m_TextureUploadBuffer);
 
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.NumDescriptors = 1;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-
-	DEVICE->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_SrvHeap));
-
-	m_SrvGpuHandle = m_SrvHeap->GetGPUDescriptorHandleForHeapStart();
-
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = m_RawImage.GetMetadata().format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Texture2D.MipLevels = 1;
 
-	DEVICE->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHeap->GetCPUDescriptorHandleForHeapStart());
+	DEVICE->CreateShaderResourceView(m_Texture.Get(), &srvDesc, TEXHEAP->GetCpuHandle(m_MyIndex));
+
+	m_SrvGpuHandle = TEXHEAP->GetGpuHandle(m_MyIndex);
 
 	return true;
 }
+
+
