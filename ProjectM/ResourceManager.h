@@ -9,6 +9,7 @@ class ResourceManager
 {
 public:
 	static Mesh* LoadMesh(const std::wstring& path);
+	static Mesh* LoadFBX(const std::wstring& path);
 	static Mesh* LoadCubeMesh();
 	static Texture* LoadTexture(const std::wstring& path);
 
