@@ -4,6 +4,7 @@
 #include "Engine.h"
 #include "Components.h"
 #include "Texture.h"
+#include "ResourceManager.h"
 
 Scene::Scene()
 {
@@ -36,10 +37,10 @@ void Scene::OnRender()
 	for (auto entity : view)
 	{
 		auto [meshRenderer, transform] = view.get<MeshRendererComponent, TransformComponent>(entity);
-		CMD_LIST->SetGraphicsRootConstantBufferView(0, transform.CBuffer.Resource()->GetGPUVirtualAddress());
-		ID3D12DescriptorHeap* ppHeaps[] = { m_Tex->GetSrvHeap().Get() };
+		CMD_LIST->SetGraphicsRootConstantBufferView(0, transform);
+		ID3D12DescriptorHeap* ppHeaps[] = { meshRenderer.Tex->GetSrvHeap().Get() };
 		CMD_LIST->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-		CMD_LIST->SetGraphicsRootDescriptorTable(1, m_Tex->GetSrvHeap()->GetGPUDescriptorHandleForHeapStart());
+		CMD_LIST->SetGraphicsRootDescriptorTable(1, meshRenderer.Tex->GetSrvHeap()->GetGPUDescriptorHandleForHeapStart());
 		SUBMIT(meshRenderer.Messi);
 	}
 }
@@ -51,12 +52,9 @@ void Scene::OnDestroy()
 
 void Scene::LoadAssets()
 {
-
 	auto entt = m_Registry.create();
-	m_Registry.emplace<MeshRendererComponent>(entt, CreateTestMesh());
+	m_Registry.emplace<MeshRendererComponent>(entt, CreateTestMesh(), ResourceManager::LoadTexture(L"Assets/Textures/veigar.jpg"));
 	m_Registry.emplace<TransformComponent>(entt, Vector3(0.0f, 0.0f, 0.0f));
-
-	m_Tex = new Texture(L"Assets//Textures//cat.png");
 }
 
 void Scene::OnKeyDown(UINT8 keycode)

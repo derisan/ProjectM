@@ -3,27 +3,32 @@
 
 #include "Engine.h"
 
-Texture::Texture(const std::wstring& path)
+Texture* Texture::CreateTexture(const std::wstring& path)
 {
-	CreateTexture(path);
-	CreateView();
+	auto tex = new Texture();
+	bool res = tex->LoadTexture(path);
+
+	if (!res) return nullptr;
+	else return tex;
 }
 
-void Texture::CreateTexture(const std::wstring& path)
+bool Texture::LoadTexture(const std::wstring& path)
 {
-	// 파일 확장자 얻기
 	std::wstring ext = std::filesystem::path(path).extension();
 
 	if (ext == L".dds" || ext == L".DDS")
 		::LoadFromDDSFile(path.c_str(), DDS_FLAGS_NONE, nullptr, m_RawImage);
 	else if (ext == L".tga" || ext == L".TGA")
 		::LoadFromTGAFile(path.c_str(), nullptr, m_RawImage);
-	else // png, jpg, jpeg, bmp
+	else
 		::LoadFromWICFile(path.c_str(), WIC_FLAGS_NONE, nullptr, m_RawImage);
 
 	HRESULT hr = ::CreateTexture(DEVICE.Get(), m_RawImage.GetMetadata(), &m_Texture);
 	if (FAILED(hr))
-		assert(nullptr);
+	{
+		MK_ERROR("Failed to load Texture.");
+		return false;
+	}
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subResources;
 
@@ -34,7 +39,10 @@ void Texture::CreateTexture(const std::wstring& path)
 		subResources);
 
 	if (FAILED(hr))
-		assert(nullptr);
+	{
+		MK_ERROR("Failed to load Texture.");
+		return false;
+	}
 
 	const UINT64 bufferSize = ::GetRequiredIntermediateSize(m_Texture.Get(), 0, static_cast<UINT>(subResources.size()));
 
@@ -50,7 +58,10 @@ void Texture::CreateTexture(const std::wstring& path)
 		IID_PPV_ARGS(m_TextureUploadBuffer.GetAddressOf()));
 
 	if (FAILED(hr))
-		assert(nullptr);
+	{
+		MK_ERROR("Failed to load Texture.");
+		return false;
+	}
 
 	::UpdateSubresources(CMD_LIST.Get(),
 		m_Texture.Get(),
@@ -60,10 +71,7 @@ void Texture::CreateTexture(const std::wstring& path)
 		subResources.data());
 
 	RELEASE_UPLOAD_BUFFER(m_TextureUploadBuffer);
-}
 
-void Texture::CreateView()
-{
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.NumDescriptors = 1;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -80,4 +88,6 @@ void Texture::CreateView()
 	srvDesc.Texture2D.MipLevels = 1;
 
 	DEVICE->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	return true;
 }

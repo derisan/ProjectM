@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <array>
 #include <filesystem>
+#include <unordered_map>
 
 using namespace DirectX;
 using namespace Microsoft::WRL;

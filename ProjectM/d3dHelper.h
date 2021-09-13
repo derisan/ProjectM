@@ -98,6 +98,11 @@ public:
 		return mUploadBuffer.Get();
 	}
 
+	D3D12_GPU_VIRTUAL_ADDRESS GetVirtualAddress() const
+	{
+		return mUploadBuffer->GetGPUVirtualAddress();
+	}
+
 	void CopyData(int elementIndex, const T& data)
 	{
 		memcpy(&mMappedData[elementIndex * mElementByteSize], &data, sizeof(T));

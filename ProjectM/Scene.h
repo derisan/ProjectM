@@ -27,6 +27,4 @@ private:
 
 private:
 	entt::registry m_Registry;
-
-	Texture* m_Tex;
 };

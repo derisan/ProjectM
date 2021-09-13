@@ -5,13 +5,14 @@
 class Texture
 {
 public:
-	Texture(const std::wstring& path);
+	Texture() = default;
 
 	ComPtr<ID3D12DescriptorHeap> GetSrvHeap() { return m_SrvHeap; }
 
+	static Texture* CreateTexture(const std::wstring& path);
+
 private:
-	void CreateTexture(const std::wstring& path);
-	void CreateView();
+	bool LoadTexture(const std::wstring& path);
 
 private:
 	ScratchImage m_RawImage;

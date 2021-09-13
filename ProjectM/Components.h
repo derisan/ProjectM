@@ -7,11 +7,12 @@
 struct MeshRendererComponent
 {
 	Mesh* Messi;
+	Texture* Tex;
 
 	MeshRendererComponent() = default;
 	MeshRendererComponent(const MeshRendererComponent&) = default;
-	MeshRendererComponent(Mesh* mesh)
-		: Messi(mesh) {}
+	MeshRendererComponent(Mesh* mesh, Texture* tex)
+		: Messi(mesh), Tex(tex) {}
 };
 
 struct TransformComponent
@@ -25,6 +26,5 @@ struct TransformComponent
 		: Position(position)
 	, CBuffer(DEVICE.Get(), 1, true) {}
 
-	operator Vector3& () { return Position; }
-	operator const Vector3& () const { return Position; }
+	operator const D3D12_GPU_VIRTUAL_ADDRESS& () const { return CBuffer.GetVirtualAddress(); }
 };
