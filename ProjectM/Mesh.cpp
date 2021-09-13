@@ -3,7 +3,8 @@
 
 #include "Engine.h"
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<UINT>& indices)
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<UINT>& indices, Texture* tex)
+	: m_Texture(tex)
 {
 	CreateVertexBuffer(vertices);
 	CreateIndexBuffer(indices);

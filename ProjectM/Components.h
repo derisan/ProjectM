@@ -7,12 +7,11 @@
 struct MeshRendererComponent
 {
 	Mesh* Messi;
-	Texture* Tex;
 
 	MeshRendererComponent() = default;
 	MeshRendererComponent(const MeshRendererComponent&) = default;
-	MeshRendererComponent(Mesh* mesh, Texture* tex)
-		: Messi(mesh), Tex(tex) {}
+	MeshRendererComponent(Mesh* mesh)
+		: Messi(mesh) {}
 };
 
 struct TransformComponent
