@@ -59,15 +59,11 @@ void Scene::OnDestroy()
 void Scene::LoadAssets()
 {
 	auto entt = m_Registry.create();
-	m_Registry.emplace<MeshRendererComponent>(entt, CreateTestMesh(), ResourceManager::LoadTexture(L"Assets/Textures/cat.png"));
+	m_Registry.emplace<MeshRendererComponent>(entt, ResourceManager::LoadCubeMesh(), ResourceManager::LoadTexture(L"Assets/Textures/cat.png"));
 	m_Registry.emplace<TransformComponent>(entt, Vector3(0.0f, 0.1f, 0.0f));
 
-	entt = m_Registry.create();
-	m_Registry.emplace<MeshRendererComponent>(entt, CreateTestMesh(), ResourceManager::LoadTexture(L"Assets/Textures/veigar.jpg"));
-	m_Registry.emplace<TransformComponent>(entt, Vector3(0.0f, 0.0f, 0.1f));
-
 	camera = m_Registry.create();
-	m_Registry.emplace<CameraComponent>(camera, Vector3(0.0f, 0.0f, -2.0f), Vector3::Backward, Vector3::UnitY, 45);
+	m_Registry.emplace<CameraComponent>(camera, Vector3(0.0f, 2.0f, -2.0f), Vector3::Backward, Vector3::UnitY, 60);
 }
 
 void Scene::OnKeyDown(UINT8 keycode)
