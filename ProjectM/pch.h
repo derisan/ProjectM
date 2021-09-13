@@ -43,8 +43,8 @@ using namespace DirectX::SimpleMath;
 #pragma comment(lib, "debug\\libxml2-md.lib")
 #pragma comment(lib, "debug\\zlib-md.lib")
 #else
-#pragma comment(lib, "release\libfbxsdk-md.lib")
-#pragma comment(lib, "release\libxml2-md.lib")
+#pragma comment(lib, "release\\libfbxsdk-md.lib")
+#pragma comment(lib, "release\\libxml2-md.lib")
 #pragma comment(lib, "release\\zlib-md.lib")
 #endif
 

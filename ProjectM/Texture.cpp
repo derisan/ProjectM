@@ -34,7 +34,7 @@ bool Texture::LoadTexture(const std::wstring& path)
 	HRESULT hr = ::CreateTexture(DEVICE.Get(), m_RawImage.GetMetadata(), &m_Texture);
 	if (FAILED(hr))
 	{
-		MK_ERROR("Failed to load Texture.");
+		MK_ERROR("Failed to load Texture: {0}", ws2s(path));
 		return false;
 	}
 

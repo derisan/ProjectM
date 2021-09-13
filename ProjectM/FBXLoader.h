@@ -24,6 +24,8 @@ private:
 	void Import(const std::wstring& path);
 	void LoadNode(FbxNode* node);
 	void LoadMesh(FbxMesh* mesh);
+	void LoadMaterial(FbxSurfaceMaterial* surfaceMaterial);
+	std::wstring GetTextureRelativeName(FbxSurfaceMaterial* surface, const char* materialProperty);
 	void GetUV(FbxMesh* mesh, UINT idx, UINT uvIndex);
 
 private:
@@ -33,4 +35,7 @@ private:
 	FbxScene* m_Scene;
 
 	MeshInfo m_Mesh;
+
+	std::wstring m_ResourceDirectory;
+	std::wstring m_FbxFilePath;
 };

@@ -2,6 +2,8 @@
 #include "FBXLoader.h"
 
 #include "Mesh.h"
+#include "Texture.h"
+#include "ResourceManager.h"
 
 
 FBXLoader* FBXLoader::s_Instance = nullptr;
@@ -27,12 +29,15 @@ void FBXLoader::Import(const std::wstring& path)
 {
 	FbxImporter* importer = FbxImporter::Create(m_Manager, "");
 
+	m_FbxFilePath = path;
 	std::string filepath = ws2s(path);
 	bool status = importer->Initialize(filepath.c_str(), -1, m_Manager->GetIOSettings());
 	MK_ASSERT(status, "Failed to Read FBX file");
 
 	m_Scene = FbxScene::Create(m_Manager, "");
 	importer->Import(m_Scene);
+
+	m_ResourceDirectory = std::filesystem::path(path).parent_path().wstring() + L"/" + std::filesystem::path(path).filename().stem().wstring() + L".fbm";
 
 	m_Scene->GetGlobalSettings().SetAxisSystem(FbxAxisSystem::DirectX);
 
@@ -52,6 +57,13 @@ void FBXLoader::LoadNode(FbxNode* node)
 		{
 			LoadMesh(node->GetMesh());
 		}
+	}
+
+	const UINT materialCount = node->GetMaterialCount();
+	for (UINT i = 0; i < materialCount; ++i)
+	{
+		FbxSurfaceMaterial* surfaceMaterial = node->GetMaterial(i);
+		LoadMaterial(surfaceMaterial);
 	}
 
 	const int childCount = node->GetChildCount();
@@ -96,6 +108,37 @@ void FBXLoader::LoadMesh(FbxMesh* mesh)
 	}
 }
 
+void FBXLoader::LoadMaterial(FbxSurfaceMaterial* surfaceMaterial)
+{
+	std::wstring diffuseTextureName = GetTextureRelativeName(surfaceMaterial, FbxSurfaceMaterial::sDiffuse);
+	std::wstring relativePath = diffuseTextureName.c_str();
+	std::wstring filename = std::filesystem::path(relativePath).filename();
+	std::wstring fullPath = m_ResourceDirectory + L"/" + filename;
+
+	auto tex = Texture::CreateTexture(fullPath);
+	ResourceManager::AddTexture(m_FbxFilePath, tex);
+}
+
+std::wstring FBXLoader::GetTextureRelativeName(FbxSurfaceMaterial* surface, const char* materialProperty)
+{
+	std::string name;
+
+	FbxProperty textureProperty = surface->FindProperty(materialProperty);
+	if (textureProperty.IsValid())
+	{
+		UINT count = textureProperty.GetSrcObjectCount();
+
+		if (1 <= count)
+		{
+			FbxFileTexture* texture = textureProperty.GetSrcObject<FbxFileTexture>(0);
+			if (texture)
+				name = texture->GetRelativeFileName();
+		}
+	}
+
+	return s2ws(name);
+}
+
 void FBXLoader::GetUV(FbxMesh* mesh, UINT idx, UINT uvIndex)
 {
 	FbxVector2 uv = mesh->GetElementUV()->GetDirectArray().GetAt(uvIndex);
@@ -110,6 +153,11 @@ Mesh* FBXLoader::LoadFBX(const std::wstring& path)
 	LoadNode(m_Scene->GetRootNode());
 
 	auto loadedMesh = new Mesh(m_Mesh.vertices, m_Mesh.indices);
+	loadedMesh->SetTexture(ResourceManager::LoadTexture(m_FbxFilePath));
+	m_Mesh = {};
+	m_ResourceDirectory.clear();
+	m_FbxFilePath.clear();
+	m_Scene->Destroy(true);
 
 	return loadedMesh;
 }

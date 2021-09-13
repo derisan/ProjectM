@@ -46,7 +46,7 @@ void Scene::OnRender()
 	{
 		auto [meshRenderer, transform] = view.get<MeshRendererComponent, TransformComponent>(entity);
 		CMD_LIST->SetGraphicsRootConstantBufferView(0, transform);
-		CMD_LIST->SetGraphicsRootDescriptorTable(1, meshRenderer.Tex->GetGpuHandle());
+		CMD_LIST->SetGraphicsRootDescriptorTable(1, meshRenderer.Messi->GetTexGpuHandle());
 		SUBMIT(meshRenderer.Messi);
 	}
 }
@@ -59,9 +59,12 @@ void Scene::OnDestroy()
 void Scene::LoadAssets()
 {
 	auto entt = m_Registry.create();
-	m_Registry.emplace<MeshRendererComponent>(entt, ResourceManager::LoadFBX(L"Assets/Models/Ch46_nonPBR.fbx"), 
-		ResourceManager::LoadTexture(L"Assets/Models/Ch46_nonPBR.fbm/Ch46_1001_Diffuse.png"));
+	m_Registry.emplace<MeshRendererComponent>(entt, ResourceManager::LoadFBX(L"Assets/Models/Ch34_nonPBR.fbx"));
 	m_Registry.emplace<TransformComponent>(entt, Vector3(0.0f, 0.1f, 0.0f));
+
+	entt = m_Registry.create();
+	m_Registry.emplace<MeshRendererComponent>(entt, ResourceManager::LoadFBX(L"Assets/Models/Ch46_nonPBR.fbx"));
+	m_Registry.emplace<TransformComponent>(entt, Vector3(100.0f, 0.1f, 0.0f));
 
 	camera = m_Registry.create();
 	m_Registry.emplace<CameraComponent>(camera, Vector3(0.0f, 2.0f, -500.0f), Vector3::Backward, Vector3::UnitY, 60);

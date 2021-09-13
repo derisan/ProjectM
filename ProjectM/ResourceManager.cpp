@@ -134,3 +134,16 @@ Texture* ResourceManager::LoadTexture(const std::wstring& path)
 		return tex;
 	}
 }
+
+void ResourceManager::AddTexture(const std::wstring& path, Texture* tex)
+{
+	auto iter = m_Textures.find(path);
+	if (iter != m_Textures.end())
+	{
+		return;
+	}
+	else
+	{
+		m_Textures[path] = tex;
+	}
+}
