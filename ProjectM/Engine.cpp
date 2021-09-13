@@ -168,6 +168,29 @@ void Engine::LoadPipeline()
 		}
 	}
 
+	{
+		D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, m_Width, m_Height);
+		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+		const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		const auto clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+		m_Device->CreateCommittedResource(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE,
+			&clearValue,
+			IID_PPV_ARGS(&m_DsvBuffer));
+
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		heapDesc.NumDescriptors = 1;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+
+		m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_DsvHeap));
+		m_Device->CreateDepthStencilView(m_DsvBuffer.Get(), nullptr, m_DsvHeap->GetCPUDescriptorHandleForHeapStart());
+	}
+
 	s_TextureDescriptorHeap = new TextureDescriptorHeap();
 }
 
@@ -268,10 +291,11 @@ void Engine::BeginRender()
 	const auto toRenderTargetBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	m_CmdList->ResourceBarrier(1, &toRenderTargetBarrier);
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RtvHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RtvDescriptorSize);
-	m_CmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-	m_CmdList->ClearRenderTargetView(rtvHandle, Colors::CornflowerBlue, 0, nullptr);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE renderTagetView(m_RtvHeap->GetCPUDescriptorHandleForHeapStart(), m_FrameIndex, m_RtvDescriptorSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_DsvHeap->GetCPUDescriptorHandleForHeapStart();
+	m_CmdList->ClearRenderTargetView(renderTagetView, Colors::CornflowerBlue, 0, nullptr);
+	m_CmdList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	m_CmdList->OMSetRenderTargets(1, &renderTagetView, FALSE, &depthStencilView);
 }
 
 void Engine::EndRender()

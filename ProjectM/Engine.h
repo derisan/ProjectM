@@ -75,6 +75,8 @@ private:
 	ComPtr<ID3D12GraphicsCommandList> m_CmdList;
 	ComPtr<ID3D12Fence> m_Fence;
 	ComPtr<ID3D12RootSignature> m_RootSignature;
+	ComPtr<ID3D12Resource> m_DsvBuffer;
+	ComPtr<ID3D12DescriptorHeap> m_DsvHeap;
 
 	std::unique_ptr<PipelineState> m_PSO;
 
