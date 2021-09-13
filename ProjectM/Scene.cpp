@@ -34,6 +34,11 @@ void Scene::OnUpdate()
 
 void Scene::OnRender()
 {
+	auto& cameraComponent = m_Registry.get<CameraComponent>(camera);
+	cameraComponent.CBuffer.CopyData(0, cameraComponent);
+
+	CMD_LIST->SetGraphicsRootConstantBufferView(2, cameraComponent.CBuffer.GetVirtualAddress());
+
 	ID3D12DescriptorHeap* ppHeaps[] = { TEXHEAP->GetHeap().Get() };
 	CMD_LIST->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 	auto view = m_Registry.view<MeshRendererComponent, TransformComponent>();
@@ -60,6 +65,9 @@ void Scene::LoadAssets()
 	entt = m_Registry.create();
 	m_Registry.emplace<MeshRendererComponent>(entt, CreateTestMesh(), ResourceManager::LoadTexture(L"Assets/Textures/veigar.jpg"));
 	m_Registry.emplace<TransformComponent>(entt, Vector3(0.0f, 0.0f, 0.1f));
+
+	camera = m_Registry.create();
+	m_Registry.emplace<CameraComponent>(camera, Vector3(0.0f, 0.0f, -2.0f), Vector3::Backward, Vector3::UnitY, 45);
 }
 
 void Scene::OnKeyDown(UINT8 keycode)
@@ -85,13 +93,13 @@ Mesh* Scene::CreateTestMesh()
 	float aspectRatio = ENGINE->GetAspectRatio();
 
 	std::vector<Vertex> vertices(4);
-	vertices[0].Position = Vector3(-0.2f, 0.2f * aspectRatio, 0.2f);
+	vertices[0].Position = Vector3(-0.2f, 0.2f, 0.0f);
 	vertices[0].UV = Vector2(0.0f, 0.0f);
-	vertices[1].Position = Vector3(0.2f, 0.2f * aspectRatio, 0.2f);
+	vertices[1].Position = Vector3(0.2f, 0.2f, 0.0f);
 	vertices[1].UV = Vector2(1.0f, 0.0f);
-	vertices[2].Position = Vector3(0.2f, -0.2f * aspectRatio, 0.2f);
+	vertices[2].Position = Vector3(0.2f, -0.2f, 0.0f);
 	vertices[2].UV = Vector2(1.0f, 1.0f);
-	vertices[3].Position = Vector3(-0.2f, -0.2f * aspectRatio, 0.2f);
+	vertices[3].Position = Vector3(-0.2f, -0.2f, 0.0f);
 	vertices[3].UV = Vector2(0.0f, 1.0f);
 
 	std::vector<UINT> indices;

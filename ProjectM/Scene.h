@@ -27,4 +27,7 @@ private:
 
 private:
 	entt::registry m_Registry;
+
+	// For test
+	entt::entity camera;
 };
